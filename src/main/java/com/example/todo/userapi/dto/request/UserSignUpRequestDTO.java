@@ -14,7 +14,7 @@ import javax.validation.constraints.Size;
 @AllArgsConstructor
 @EqualsAndHashCode(of = "email")
 @Builder
-public class UserRequestSignUpDTO {
+public class UserSignUpRequestDTO {
 
     @NotBlank
     @Email

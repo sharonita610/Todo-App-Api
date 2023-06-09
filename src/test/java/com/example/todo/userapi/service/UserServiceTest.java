@@ -1,6 +1,6 @@
 package com.example.todo.userapi.service;
 
-import com.example.todo.userapi.dto.request.UserRequestSignUpDTO;
+import com.example.todo.userapi.dto.request.UserSignUpRequestDTO;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,8 +26,8 @@ class UserServiceTest {
         //given
         String email = "abc123@aaa.com";
 
-        UserRequestSignUpDTO dto
-                = UserRequestSignUpDTO.builder()
+        UserSignUpRequestDTO dto
+                = UserSignUpRequestDTO.builder()
                 .email(email)
                 .password("dfsdfs")
                 .userName("dfsdf")
