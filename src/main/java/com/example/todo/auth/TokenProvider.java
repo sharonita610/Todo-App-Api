@@ -1,5 +1,6 @@
 package com.example.todo.auth;
 
+import com.example.todo.userapi.entity.Role;
 import com.example.todo.userapi.entity.User;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -95,7 +96,7 @@ public class TokenProvider {
         return TokenUserInfo.builder()
                 .userId(claims.getSubject()) // subject 안에다가 id를 넣었기 때문에 이렇게 사용한다
                 .email(claims.get("email", String.class))
-                .email(claims.get("role", String.class))
+                .role(Role.valueOf(claims.get("role", String.class)))
                 .build();
 
     }

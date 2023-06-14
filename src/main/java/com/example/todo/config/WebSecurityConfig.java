@@ -4,6 +4,8 @@ import com.example.todo.filter.JwtAuthFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
+import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -14,6 +16,8 @@ import org.springframework.web.filter.CorsFilter;
 
 @EnableWebSecurity
 @RequiredArgsConstructor
+// 자동 권한 검사를 수행하기 위한 설정
+@EnableGlobalMethodSecurity(prePostEnabled = true) // 자동권한 검사를 여기서 해준다
 //@Configuration
 public class WebSecurityConfig {
 
@@ -41,7 +45,10 @@ public class WebSecurityConfig {
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS) //  세션 인증 안쓴다는 설정
                 .and()
                 // 어떤 요청에서 인증을 안할 것인지 설정, 언제 할 것인지 설정
-                .authorizeRequests().antMatchers("/", "/api/auth/**").permitAll()
+                .authorizeRequests()
+                .antMatchers(HttpMethod.PUT, "/api/auth/promote").authenticated()
+                .antMatchers("/", "/api/auth/**").permitAll()
+
                 .anyRequest().authenticated()
         ;
 

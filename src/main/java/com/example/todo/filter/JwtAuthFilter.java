@@ -38,7 +38,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
         try {
             String token = parseBearerToken(request);
-            log.info("Jwt Token Filter is running.... - token{}", token);
+            log.info("Jwt Token Filter is running.... - token: {}", token);
 
             // 토큰 위조검사 및 인증 완료처리
             if(token != null){
@@ -49,7 +49,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 // 인가정보 리스트
                 List<SimpleGrantedAuthority> authorityList
                         = new ArrayList<>();
-                authorityList.add(new SimpleGrantedAuthority(userInfo.getRole().toString()));
+                authorityList.add(new SimpleGrantedAuthority("ROLE_" + userInfo.getRole().toString()));
 
 
                 // 인증 완료 처리

@@ -1,12 +1,16 @@
 package com.example.todo.todoapi.api;
 
+import com.example.todo.auth.TokenUserInfo;
 import com.example.todo.todoapi.dto.request.TodoCreateRequestDTO;
 import com.example.todo.todoapi.dto.request.TodoModifyRequestDTO;
 import com.example.todo.todoapi.dto.response.TodoListResponseDTO;
 import com.example.todo.todoapi.service.TodoService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -25,7 +29,8 @@ public class TodoController {
     // 할 일 등록 요청
     @PostMapping
     public ResponseEntity<?> createTodo(
-            @Validated @RequestBody TodoCreateRequestDTO requestDTO
+            @AuthenticationPrincipal TokenUserInfo userInfo
+            , @Validated @RequestBody TodoCreateRequestDTO requestDTO
             , BindingResult result
     ) {
         if (result.hasErrors()) {
@@ -36,10 +41,16 @@ public class TodoController {
         }
 
         try {
-            TodoListResponseDTO responseDTO = todoService.create(requestDTO);
+            TodoListResponseDTO responseDTO = todoService.create(requestDTO, userInfo);
             return ResponseEntity
                     .ok()
                     .body(responseDTO);
+        }catch (IllegalStateException e){
+            // 권한때문에 발생한 예외
+            log.warn(e.getMessage());
+            //HttpStatus.UNAUTHORIZED == 401번 에러
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
+
         } catch (RuntimeException e) {
             log.error(e.getMessage());
             return ResponseEntity
@@ -51,8 +62,10 @@ public class TodoController {
 
     // 할 일 삭제 요청
     @DeleteMapping("/{id}")
+//    @PreAuthorize("hasRole('ROLE_PREMIUM') or hasRole('ROLE_ADMIN')") -> 삭제도 권한을 부여하고 싶으면 이렇게
     public ResponseEntity<?> deleteTodo(
-            @PathVariable("id") String todoId
+            @AuthenticationPrincipal TokenUserInfo userInfo
+            ,@PathVariable("id") String todoId
     ) {
         log.info("/api/todos/{} DELETE request!", todoId);
 
@@ -63,7 +76,7 @@ public class TodoController {
         }
 
         try {
-            TodoListResponseDTO responseDTO = todoService.delete(todoId);
+            TodoListResponseDTO responseDTO = todoService.delete(todoId, userInfo.getUserId());
             return ResponseEntity.ok().body(responseDTO);
         } catch (Exception e) {
             return ResponseEntity.internalServerError()
@@ -73,10 +86,13 @@ public class TodoController {
 
     // 할 일 목록요청 (GET)
     @GetMapping
-    public ResponseEntity<?> retrieveTodoList() {
+    public ResponseEntity<?> retrieveTodoList(
+            // 토큰에 있는 사용자 정보를 불러올 수 있다.
+            @AuthenticationPrincipal TokenUserInfo userInfo
+    ) {
         log.info("/api/todos GET request!");
 
-        TodoListResponseDTO responseDTO = todoService.retrieve();
+        TodoListResponseDTO responseDTO = todoService.retrieve(userInfo.getUserId());
 
         return ResponseEntity.ok().body(responseDTO);
     }
@@ -84,7 +100,9 @@ public class TodoController {
     // 할 일 수정요청 (PUT, PATCH)
     @RequestMapping(method = {RequestMethod.PUT, RequestMethod.PATCH})
     public ResponseEntity<?> updateTodo(
-            @Validated @RequestBody TodoModifyRequestDTO requestDTO
+            @AuthenticationPrincipal TokenUserInfo userInfo
+
+            ,@Validated @RequestBody TodoModifyRequestDTO requestDTO
             , BindingResult result
             , HttpServletRequest request
     ) {
@@ -97,7 +115,7 @@ public class TodoController {
         log.info("modifying dto : {}", requestDTO);
 
         try {
-            TodoListResponseDTO responseDTO = todoService.update(requestDTO);
+            TodoListResponseDTO responseDTO = todoService.update(requestDTO, userInfo.getUserId());
             return ResponseEntity.ok().body(responseDTO);
         } catch (Exception e) {
             return ResponseEntity.internalServerError()

@@ -8,7 +8,7 @@ import org.hibernate.annotations.GenericGenerator;
 import javax.persistence.*;
 import java.time.LocalDateTime;
 
-@Setter@Getter
+@Getter
 @ToString@EqualsAndHashCode(of = "id")
 @NoArgsConstructor
 @AllArgsConstructor
@@ -37,7 +37,13 @@ public class User {
     private LocalDateTime joinDate;
 
     @Enumerated(EnumType.STRING)
-    @ColumnDefault("'COMMON'")
-    private Role role; // 유저 권한
+//    @ColumnDefault("'COMMON'")
+    @Builder.Default
+    private Role role = Role.COMMON; // 유저 권한
+
+    // 등급 수정 메서드 : setter은 실무에서 사용하면  x
+    public void changeRole(Role role){
+        this.role = role;
+    }
 
 }
